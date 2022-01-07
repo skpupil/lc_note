@@ -1,7 +1,7 @@
-## 206
+## lc-206
 掌握递归和循环，递归不要忘了置nullptr<br/>
 循环中，使用多指针<br/>
-## 3
+## lc-3
 
 双指针<br/>
 ## 146
@@ -265,4 +265,79 @@ public:
         return loww;
     }
 };
+```
+
+## lc-704
+标准二分法
+```
+    int search(vector<int>& nums, int target) {
+        int mid = 0 ,l = 0, r = nums.size()-1;
+        while(l <= r) {//[l,r]，左右边界都包含，这里要写上=
+            mid = l + (r-l)/2;
+            if(nums[mid] == target) return mid;
+            else if(nums[mid] > target) r = mid-1;
+            else l = mid + 1;
+        }
+        return -1;
+    }
+```
+## lc-35
+找第一个大于等于target的下标
+标准写法，最后返回l即可。
+```
+    int searchInsert(vector<int>& nums, int target) {
+        int mid = 0, l = 0, r = nums.size() - 1;
+        while(l <= r) {
+            mid = l + (r-l)/2;
+            if(target == nums[mid]) return mid;
+            else if(target > nums[mid]) l = mid + 1;
+            else r = mid - 1;
+        }
+        return l;
+    }
+```
+
+## lc-300
+dp[i]:以nums[i]结尾的最长上升子序列的长度。
+```
+    int lengthOfLIS(vector<int>& nums) {
+        int len = nums.size();
+        if(len == 0)return 0;
+        int dp[len+1];
+        dp[0] = 1;
+        int ans = 1;
+        for(int i=1;i<len;i++) {
+            dp[i] = 1;
+            for(int j = 0;j<i;j++) {
+                if(nums[i] > nums[j])
+                    dp[i] = max(dp[i],dp[j]+1);
+            }
+            ans = max(ans,dp[i]);
+        }
+        return ans;
+    }
+```
+二分查找法，也很简单，无非就是再新建一个数组，然后第一个数先放进去，然后第二个数和第一个数比较，如果说大于第一个数，那么就接在他后面，如果小于第一个数，那么就替换，一般的，如果有i个数，那么每进来一个新的数，都要用二分查找法来得知要替换在哪个位置的数（lc-35）。因为有个for循环，所以是O(N),在加上循环里有个二分查找，所以最后是O(NlogN)的时间复杂度。
+
+相当于维护一个结果数组，如果当前元素比结果数组的值都大的的话，就追加在结果数组后面（相当于递增序列长度加了1）；否则的话用当前元素覆盖掉第一个比它大的元素（这样做的话后续递增序列才有可能更长，即使并没有更长，这个覆盖操作也并没有副作用哈，当然这个覆盖操作可能会让最终的结果数组值并不是最终的递增序列值，这无所谓）
+
+```
+    int lengthOfLIS(vector<int>& nums) {
+        int len = nums.size();
+        if(len == 0)return 0;
+        int rec[len+1];
+        int lenrec = 0;
+        for(int i=0;i<len;i++) {
+            int cur = nums[i], l = 0, r = lenrec - 1;
+            while(l <= r) {
+                int mid = l + (r-l)/2;
+                if(rec[mid] == cur){l = mid; break;}
+                else if(rec[mid] > cur) r = mid - 1;
+                else l = mid + 1;
+            }
+            rec[l] = cur;
+            if(l == lenrec) lenrec++;
+        }
+        return lenrec;
+    }
 ```
