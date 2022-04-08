@@ -22,9 +22,11 @@ mapp.count(1)
 mapp.find(1) != mapp.end()
 mapp.erase()
 mapp[key] = val
+mapp[key]++;
 //添加或修改元素
-
-
+        for(auto &kv: mapp){
+            cout<<kv.first<<kv.second<<endl;
+        }
 ```
 
 ## set

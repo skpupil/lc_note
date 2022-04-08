@@ -203,3 +203,348 @@ public:
     }
 };
 ```
+
+lc-32. 最长有效括号
+两周情况: "()()()" "()((()))"
+动态规划: dp[i]表示以i结尾的最长有效括号长度
+遇到')'，分别判断两周情况。
+1、dp[i] = dp[i-2]+2                                if s[i-1]=='('
+2、dp[i] = dp[i - dp[i-1] - 2] + dp[i-1] + 2        if s[i-1]==')'
+```
+class Solution {
+public:
+    int longestValidParentheses(string s) {
+        int len = s.length(),ans = 0;
+        //int dp[len+2];memset(dp,0,sizeof(int)*len);
+        vector<int > dp(len+2,0);//尽量用vector，而不是数组
+        for(int i = 0;i<len;i++){
+            if(s[i] == ')'){
+                if(i == 0) continue;
+                if(s[i-1] == '('){
+                    dp[i] += 2;
+                    if(i-2>=0)
+                        dp[i] += dp[i-2];
+                }
+                if(s[i-1] == ')')  {
+                    if(i - dp[i-1] - 1>=0&&s[i - dp[i-1] - 1] == '('){
+                        dp[i] = dp[i-1] + 2;
+                        if(i - dp[i-1] - 2>=0)
+                            dp[i] +=  + dp[i - dp[i-1] - 2];
+                    }
+                }
+            }
+            ans = max(ans,dp[i]);
+        }
+        return ans; 
+    }
+};
+```
+
+lc-151. 翻转字符串里的单词
+```
+class Solution {
+public:
+    string reverseWords(string s) {
+        int len = s.length();
+        stack<string> stk;
+        int j = 0;
+        for(int i = 0;i<len;i++){
+            if(s[i] == ' ')continue;
+            j = i;
+            while(j<len&&s[j]!=' ') j++;
+            stk.push(s.substr(i,j-i));
+            i = j;
+        }
+        s = "";
+        while(!stk.empty()){
+            s+=stk.top();
+            stk.pop();
+            if(!stk.empty()) s+=" ";
+        }
+        return s;
+    }
+};
+```
+如果不借助额外空间，需要忽略多余空格，先翻转整个字符串，再翻转每个单词。用双指针
+
+lc-46. 全排列
+```
+class Solution {
+public:
+    vector<vector<int > > ans;
+    void trave( vector<int>& nums,vector<int >& thiss,vector<int >& rec,int len) {
+        if(thiss.size() == len) {
+            ans.push_back(thiss);
+            return;
+        }
+        for(int i=0;i<len;i++) {
+            if(rec[i]==0) {
+                rec[i] = 1;
+                thiss.push_back(nums[i]);
+                trave(nums,thiss,rec,len);
+                thiss.pop_back();
+                rec[i] = 0;
+            }
+        }
+    }
+    vector<vector<int>> permute(vector<int>& nums) {
+        int len = nums.size();
+        //int rec[len];memset(rec, 0, sizeof(int )*len);
+        vector<int> rec(len,0);
+        vector<int > thiss;
+        trave(nums,thiss,rec,len);
+        return ans;
+    }
+};
+```
+### lc-47. 全排列 II
+比46加了去重的步骤，就是先sort一下，每次选数的时候，要选的nums[i]和nums[i-1]重复，并且nums[i-1]没有使用，就跳过
+```
+class Solution {
+public:
+    int len = 0;
+    void findd(vector<int> nums,int pos,vector<int>& cur,vector<vector<int>>& ans,vector<int>& vis) {
+         if(pos == len) {
+             ans.push_back(cur);
+             return ;
+         }
+         if(pos>len) return;
+         for(int i =0;i<len;i++) {
+             if(vis[i] == 0 && !(i!= 0 &&nums[i] == nums[i-1] && vis[i-1] == 0)){
+                cur[pos] = nums[i];
+                vis[i] = 1;
+                findd(nums,pos+1,cur,ans,vis);
+                vis[i] = 0;
+             }
+         }
+    }
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        len = nums.size();
+        vector<vector<int>> ans;
+        sort(nums.begin(),nums.end());
+        vector<int> vec(len,0);
+        vector<int> vis(len,0);
+        findd(nums,0,vec,ans,vis);
+        return ans;
+    }
+};
+```
+
+
+lc-560. 和为 K 的子数组
+数组中找和为K的子数组的个数
+枚举O(n^2)
+
+前缀和+哈希查找
+
+由于只关心次数，不关心具体的解，我们可以使用哈希表加速运算；
+由于保存了之前相同前缀和的个数，计算区间总数的时候不是一个一个地加，时间复杂度降到了 O(N)O(N)。
+
+```
+class Solution {
+public:
+    int subarraySum(vector<int>& nums, int k) {
+        map<int,int> mapp;
+        mapp[0] = 1;
+        int presum = 0 ,ans = 0 ,len = nums.size();
+        for(int i = 0;i<len;i++) {
+            presum += nums[i];
+            if(mapp.count(presum - k) != 0)
+                ans+=mapp[presum - k];
+            mapp[presum]++;
+        }
+        return ans;
+    }
+};
+```
+找个数多题目-》使用map
+
+lc-1248. 统计「优美子数组」
+```
+class Solution {
+public:
+    int numberOfSubarrays(vector<int>& nums, int k) {
+        int len = nums.size(), presum = 0,ans = 0;
+        map<int ,int> mapp;
+        mapp[0] = 1;
+        for(int i = 0;i<len;i++) {
+            if(nums[i]%2 == 1) presum++;
+            if(mapp.count(presum-k)) ans+=mapp[presum-k];
+            mapp[presum]++;
+        }
+        return ans;
+    }
+};
+```
+lc-1 两数之和
+
+lc-454. 四数相加 II
+```
+class Solution {
+public:
+    int fourSumCount(vector<int>& nums1, vector<int>& nums2, vector<int>& nums3, vector<int>& nums4) {
+        int len1 = nums1.size(), len2 = nums2.size(), len3 = nums3.size(), len4 = nums4.size(),ans = 0,presum = 0;
+        map<int,int> mapp,mapp2;
+        for(int i = 0;i<len1;i++) {
+            for(int j = 0;j<len2;j++) {
+                mapp[(nums1[i] + nums2[j])]++;
+            }
+        }
+        for(int i = 0;i<len3;i++){
+            for(int j = 0;j<len4;j++) {
+                presum = -nums3[i] - nums4[j];
+                if(mapp.count(presum)) ans+=mapp[presum];
+            }
+        }
+        return ans;
+    }
+};
+```
+
+## lc-109. 有序链表转换二叉搜索树
+```
+/**
+class Solution {
+public:
+    ListNode* getmidd(ListNode* leftt,ListNode* rightt) {
+        ListNode* sloww = leftt;
+        ListNode* fastt = leftt;
+        while(fastt != rightt && fastt->next != rightt) {
+            fastt = fastt->next;
+            fastt = fastt->next;
+            sloww = sloww->next;
+        }
+        return sloww;
+    }
+    TreeNode* buildd(ListNode* leftt,ListNode* rightt) {
+        if(leftt == rightt) {
+            return nullptr;
+        }
+        ListNode* midd =   getmidd(leftt , rightt);
+        TreeNode* middd = new TreeNode(midd->val);
+        
+        middd->left = buildd(leftt,midd);
+        middd->right = buildd(midd->next,rightt);
+        return middd;
+    }
+    TreeNode* sortedListToBST(ListNode* head) {
+        return buildd(head,nullptr);
+    }
+};
+```
+
+## lc-22. 括号生成
+简单回溯 ，dfs
+```
+class Solution {
+public:
+    vector<string> ans;
+    void findd(string tem,int llef,int rlef,int n) {
+        if(llef == 0 && rlef == 0) {
+            ans.push_back(tem);
+        }
+        if(llef > 0) {
+            findd(tem+'(',llef-1,rlef,n);
+        }
+        if(rlef > llef) {
+            findd(tem+')',llef,rlef-1,n);
+        }
+    }
+    vector<string> generateParenthesis(int n) {
+        string tem;
+        findd(tem,n,n,n);
+        return ans;
+    }
+};
+```
+BFS
+```
+struct nodee {
+    int llef;
+    int rlef;
+    string str;
+    nodee(int l,int r,string s):llef(l),rlef(r),str(s){}
+};
+class Solution {
+public:
+    vector<string> generateParenthesis(int n) {
+        queue<nodee* > que;
+        vector<string> ans;
+        nodee* no = new nodee(n,n,"");
+        que.push(no);
+        while(!que.empty()) {
+            nodee* tem = que.front();
+            que.pop();
+            if(tem->llef == 0 && tem->rlef == 0)ans.push_back(tem->str);
+            if(tem->llef > 0){
+                que.push(new nodee(tem->llef-1,tem->rlef,tem->str+'('));
+            }
+            if(tem->rlef > tem->llef){
+                que.push(new nodee(tem->llef,tem->rlef-1,tem->str+')'));
+            }
+        }
+        return ans;
+    }
+};
+```
+
+## lc-11. 盛最多水的容器
+```
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int len = height.size();
+        int i = 0, j = len-1,ans = 0;
+        while(i < j) {
+            ans = max(ans,(j-i) * min(height[i],height[j]));
+            if(height[i] < height[j]) {
+                i++;
+            }else {
+                j--;
+            }
+        }
+        return ans;
+    }
+};
+```
+
+
+lc-207. 课程表
+拓扑排序
+有向图中，判断有没有环
+把入度为0的进入队列，挨个出队遍历边，更新入度，一旦为0，入队，知道队列为空。
+判断还有没有入度不为0的点
+```
+class Solution {
+public:
+    bool canFinish(int numCourses, vector<vector<int>>& prerequisites) {
+        queue<int> que;
+        map<int,int> into;
+        vector< vector<int> > vec(numCourses);
+        for(int i = 0;i<prerequisites.size();i++) {
+            into[prerequisites[i][0]]++;
+            vec[prerequisites[i][1]].push_back(prerequisites[i][0]);
+        }
+        for(int i = 0;i<numCourses;i++) {
+            if(into[i] == 0) {
+                que.push(i);
+            }
+        }
+        while(!que.empty()) {
+            int tem = que.front();
+            que.pop();
+            for(int i=0;i<vec[tem].size();i++) {
+                into[vec[tem][i]]--;
+                if(into[vec[tem][i]] == 0) que.push(vec[tem][i]);
+            }
+        }
+        for(int i = 0;i<numCourses;i++) {
+            if(into[i] > 0)return false;
+        }
+        return true;
+    }
+};
+```
+
+PMU tools
+vtune
