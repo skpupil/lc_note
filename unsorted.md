@@ -509,7 +509,7 @@ public:
 ```
 
 
-lc-207. 课程表
+## lc-207. 课程表
 拓扑排序
 有向图中，判断有没有环
 把入度为0的进入队列，挨个出队遍历边，更新入度，一旦为0，入队，知道队列为空。
@@ -546,5 +546,211 @@ public:
 };
 ```
 
+## 二叉树中序遍历
+一直循环放入左子树，左空了就从栈中拿出来一个，放入ans，然后右子树
+```
+class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        stack<TreeNode* > stk;
+        TreeNode* ptr = root;
+        vector<int> ans;
+        while(ptr || !stk.empty()) {
+            while(ptr) {
+                stk.push(ptr);
+                ptr = ptr->left;
+            }
+            ptr = stk.top();
+            stk.pop();
+            ans.push_back(ptr->val);
+            ptr = ptr->right;
+        }
+        return ans;
+    }
+};
+```
+## 二叉树前序遍历
+和中序遍历差不多，只不过在循环左子树的时候，就放入到ans。
+class Solution {
+public:
+    vector<int> preorderTraversal(TreeNode* root) {
+        stack<TreeNode* > stk;
+        TreeNode* ptr = root;
+        vector<int> ans;
+        while(ptr || !stk.empty()) {
+            while(ptr) {
+                stk.push(ptr);
+                ans.push_back(ptr->val);
+                ptr = ptr->left;
+            }
+            ptr = stk.top();
+            stk.pop();
+            ptr = ptr->right;
+        }
+        return ans;
+    }
+};
+
+## 二叉树后序遍历
+相比于先续遍历：中左右
+我们只需要改一下左右：中右左，然后反转一下ans就行了
+```
+class Solution {
+public:
+    vector<int> postorderTraversal(TreeNode* root) {
+        stack<TreeNode*> stk;
+        TreeNode* ptr = root;
+        vector<int> ans;
+        while(ptr || !stk.empty()) {
+            while(ptr) {
+                ans.push_back(ptr->val);
+                stk.push(ptr);
+                ptr = ptr->right;
+            }
+            ptr = stk.top();
+            stk.pop();
+            ptr = ptr->left;
+        }
+        reverse(ans.begin(),ans.end());
+        return ans;
+    }
+};
+```
+## 108. 将有序数组转换为二叉搜索树
+```
+class Solution {
+public:
+    TreeNode* numsToTree(vector<int>& nums,int l ,int r) {
+        if(l>r) return nullptr;
+        int mid = (l+r)/2;
+        TreeNode* nodee = new TreeNode(nums[mid]);
+        nodee->left = numsToTree(nums,l,mid-1);
+        nodee->right = numsToTree(nums,mid+1,r);
+        return nodee;
+    }
+    TreeNode* sortedArrayToBST(vector<int>& nums) {
+        int len = nums.size();
+        return numsToTree(nums,0,len-1);
+    }
+};
+```
+
+
 PMU tools
 vtune
+
+
+
+
+class Solution {
+public:
+    /**
+     * 代码中的类名、方法名、参数名已经指定，请勿修改，直接返回方法规定的值即可
+     *
+     * 
+     * @param matrix int整型vector<vector<>> 
+     * @return int整型vector
+     */
+    vector<int> antiSpiralOrder(vector<vector<int> >& matrix) {
+        int lenM = matrix.size(), lenN = matrix[0].size();
+        vector<int> ans;
+        for(int i = 0;i<lenM/2;i++) {
+            for(int j = 0;j<lenN;j++)
+                swap(matrix[i][j], matrix[lenM-i-1][j]);
+        }
+        for(int i = 0;i<lenM;i++) {
+            for(int j = 0;j<i;j++)
+                swap(matrix[i][j], matrix[j][i]);
+        }
+        
+        int upp = 0, doww = lenN-1, le = 0, ri = lenM-1;
+        while(1) {
+            for(int i = upp;i<=doww&&i<lenN;i++)
+                ans.push_back(matrix[i][le]);
+            le++;
+            if(le>ri)break;
+            for(int i = le;i<=ri&&i<lenM;i++)
+                ans.push_back(matrix[doww][i]);
+            doww--;
+            if(doww<upp)break;
+            for(int i = doww;i>=upp&&i>=0;i--)
+                ans.push_back(matrix[i][ri]);
+            ri--;
+            if(ri<le) break;
+            for(int i= ri;i>=le&&i>=0;i--)
+                ans.push_back(matrix[upp][i]);
+            upp++;
+            if(upp>doww)break;
+        }
+        return ans;
+    }
+};
+
+
+
+/**
+ * struct TreeNode {
+ *	int val;
+ *	struct TreeNode *left;
+ *	struct TreeNode *right;
+ *	TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ * };
+ */
+class Solution {
+public:
+    /**
+     * 代码中的类名、方法名、参数名已经指定，请勿修改，直接返回方法规定的值即可
+     *
+     * 
+     * @param preSlice int整型vector 先序遍历结果数组
+     * @return TreeNode类
+     */
+    TreeNode* findd(int le,int ri,vector<int> preSlicee) {
+        if(le>ri) return nullptr;
+        int tem = le, len = preSlicee.size();
+        for(tem = le+1;tem<len;tem++) {
+            if(preSlicee[tem] > preSlicee[le]) {
+                break;
+            }
+        }
+        TreeNode* root = new TreeNode(preSlicee[le]);
+        root->left = findd(le+1, tem-1, preSlicee);
+        root->right = findd(tem, ri, preSlicee);
+        return root;
+    }
+    TreeNode* reConstructBST(vector<int>& preSlice) {
+        int len = preSlice.size();
+        return findd(0,len-1,preSlice);
+    }
+};
+
+
+class Solution {
+public:
+    /**
+     * 代码中的类名、方法名、参数名已经指定，请勿修改，直接返回方法规定的值即可
+     *
+     * 
+     * @param nums int整型vector 整形数组
+     * @return int整型
+     */
+    int longestGeometricSeqLength(vector<int>& nums) {
+        int len = nums.size();
+        int dp[len][len];
+        int ans = 0;
+        vector<map<int,int>> tem(len);
+        for(int i = 0;i<len;i++) {
+            for(int j = 0;j<i;j++){
+                int ddd = nums[i]/nums[j];
+                if(ddd*nums[j] != nums[i]) continue;
+                if(tem[j][ddd]){
+                    tem[i][ddd] = tem[j][ddd]+1;
+                }else{
+                    tem[i][ddd] = 2;
+                }
+                ans = max(ans,tem[i][ddd]);
+            }
+        }
+        return ans;
+    }
+};

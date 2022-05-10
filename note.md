@@ -374,11 +374,9 @@ void print_arr(int arr[], int n){
 int partition(int arr[],int l,int r){
     int pivot = arr[l];
     while(l < r){
-        while(l < r && arr[r] >= pivot)
-            r--;
+        while(l < r && arr[r] >= pivot) r--;
         arr[l] = arr[r];
-        while (l < r && arr[l] <= pivot)
-            l++;
+        while (l < r && arr[l] <= pivot) l++;
         arr[r] = arr[l];
     }
     arr[l] = pivot;
